@@ -162,7 +162,7 @@ module BitmaskAttributes
       end
 
       def eval_string_for_zero(value_string)
-        zero_value ? "#{value_string}.blank? || #{value_string} == :#{zero_value}" : "#{value_string}.blank?"
+        zero_value ? "#{value_string}.blank? || #{value_string}.to_s == '#{zero_value}'" : "#{value_string}.blank?"
       end
   end
 end
