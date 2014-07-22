@@ -1,6 +1,7 @@
 require "rubygems"
 require 'bundler/setup'
 
+require 'minitest/autorun'
 require 'test/unit'
 begin; require 'turn'; rescue LoadError; end
 require 'shoulda'

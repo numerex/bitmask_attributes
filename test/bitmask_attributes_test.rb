@@ -52,14 +52,6 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         campaign.medium = [:phone, :email]
         assert_stored campaign, :phone, :email
       end
-      
-      should "can assign raw bitmask values" do
-        campaign = @campaign_class.new
-        campaign.medium_bitmask = 3
-        assert_stored campaign, :web, :print
-        campaign.medium_bitmask = 0
-        assert_empty campaign.medium
-      end
 
       should "can assign raw bitmask values" do
         campaign = @campaign_class.new
@@ -93,11 +85,6 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_unsupported { campaign.medium << :this_will_fail_also }
         assert_unsupported { campaign.medium = [:so_will_this] }
       end
-      
-      should "can only use Fixnum values for raw bitmask values" do
-        campaign = @campaign_class.new(:medium => :web)
-        assert_unsupported { campaign.medium_bitmask = :this_will_fail }
-      end
 
       should "cannot use unsupported values for raw bitmask values" do
         campaign = @campaign_class.new(:medium => :web)
@@ -109,13 +96,6 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
       should "can only use Fixnum values for raw bitmask values" do
         campaign = @campaign_class.new(:medium => :web)
         assert_unsupported { campaign.medium_bitmask = :this_will_fail }
-      end
-
-      should "cannot use unsupported values for raw bitmask values" do
-        campaign = @campaign_class.new(:medium => :web)
-        number_of_attributes = @campaign_class.bitmasks[:medium].size
-        assert_unsupported { campaign.medium_bitmask = (2 ** number_of_attributes) }
-        assert_unsupported { campaign.medium_bitmask = -1 }
       end
 
       should "can determine bitmasks using convenience method" do
@@ -312,23 +292,6 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_equal [:one],campaign.allow_zero
       end
 
-
-      private
-
-        def assert_unsupported(&block)
-          assert_raises(ArgumentError, &block)
-        end
-
-        def assert_stored(record, *values)
-          values.each do |value|
-            assert record.medium.any? { |v| v.to_s == value.to_s }, "Values #{record.medium.inspect} does not include #{value.inspect}"
-          end
-          full_mask = values.inject(0) do |mask, value|
-            mask | @campaign_class.bitmasks[:medium][value]
-          end
-          assert_equal full_mask, record.medium.to_i
-        end
-
     end
   end
 
@@ -353,4 +316,20 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
   context_with_classes 'Campaign without null attributes', CampaignWithoutNull, CompanyWithoutNull
   context_with_classes 'SubCampaign with null attributes', SubCampaignWithNull, CompanyWithNull
   context_with_classes 'SubCampaign without null attributes', SubCampaignWithoutNull, CompanyWithoutNull
+
+  private
+
+  def assert_unsupported(&block)
+    assert_raises(ArgumentError, &block)
+  end
+
+  def assert_stored(record, *values)
+    values.each do |value|
+      assert record.medium.any? { |v| v.to_s == value.to_s }, "Values #{record.medium.inspect} does not include #{value.inspect}"
+    end
+    full_mask = values.inject(0) do |mask, value|
+      mask | @campaign_class.bitmasks[:medium][value]
+    end
+    assert_equal full_mask, record.medium.to_i
+  end
 end
